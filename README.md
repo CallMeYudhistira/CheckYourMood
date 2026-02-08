@@ -110,19 +110,6 @@ Gunakan IP lokal (bukan localhost) jika dites di HP fisik.
 
 ---
 
-## 🗂 Folder Structure
-
-CheckYourMood/
-├─ android/
-│  └─ app/
-├─ backend/
-│  ├─ app.py
-│  ├─ venv/
-│  └─ README.md
-├─ README.md
-
----
-
 ## ⚠️ Disclaimer
 
 Aplikasi ini tidak ditujukan sebagai alat diagnosis psikologis atau medis.  
