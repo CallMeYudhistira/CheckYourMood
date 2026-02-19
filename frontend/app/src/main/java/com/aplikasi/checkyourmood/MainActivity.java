@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv_description, tv_mood;
     private Button btn_save;
     private LinearLayout savePanel;
-    private final String url = "https://kimiko-chromic-nonmelodiously.ngrok-free.dev/predict";
+    private final String url = "http://192.168.0.100:5001/predict";
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private ProgressDialog progressDialog;
 

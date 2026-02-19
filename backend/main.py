@@ -9,31 +9,31 @@ app = Flask(__name__)
 MOOD_MAP = {
     "happy": {
         "label": "Bahagia 😁",
-        "description": "Keliatan lagi senang nih. Pertahanin mood positifnya ya, vibes-nya dapet 🔥"
+        "description": "Wah lagi happy banget nih! Vibes-nya positif parah ✨🔥"
     },
     "sad": {
         "label": "Sedih 😔",
-        "description": "Lagi nggak baik-baik aja ya. Gapapa, semua orang pernah di fase ini 🤍"
+        "description": "Lagi down ya? Gapapa, kita jalanin sambil dengerin Frank Ocean 💙"
     },
     "angry": {
         "label": "Marah 😡",
-        "description": "Kelihatannya lagi emosi. Coba tarik napas dulu, tenangin diri sebentar 😤"
+        "description": "Wah kayaknya lagi panas nih. Chill dulu bentar woy, jangan sampe crashout 💨😤"
     },
     "surprise": {
-        "label": "Terkejut 😧",
-        "description": "Sepertinya ada sesuatu yang bikin kaget. Semoga kagetnya hal baik ya 😲"
+        "label": "Terkejut 😲",
+        "description": "Eh ada apa nih? Kayak baru kena plot twist 😳 Hati-hati jantungan wkwkwk"
     },
     "fear": {
         "label": "Takut 😰",
-        "description": "Kamu terlihat cemas atau takut. Ingat, kamu nggak sendirian 💪"
+        "description": "Lagi anxious mode ya? atau ada sesuatu? Santai aja, jangan panik 💪✨"
     },
     "disgust": {
-        "label": "Jijik 🤮",
-        "description": "Ekspresi menunjukkan rasa nggak nyaman. Jauhin hal yang bikin nggak enak 🤢"
+        "label": "Jijik 🤢",
+        "description": "Wah kayak abis liat yang cringe abis 😅 Kalau nggak nyaman, mending skip aja!"
     },
     "neutral": {
         "label": "Netral 😑",
-        "description": "Ekspresi wajah terlihat datar. Lagi santai atau capek mungkin 😐"
+        "description": "Ekspresinya calm dan flat. Lagi santai aja atau lagi sigma? 🤔"
     }
 }
 
@@ -68,4 +68,4 @@ def predict():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5001)

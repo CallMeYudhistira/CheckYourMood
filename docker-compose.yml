@@ -1,0 +1,7 @@
+services:
+  emotion-api:
+    build: ./backend
+    container_name: emotion_api
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
