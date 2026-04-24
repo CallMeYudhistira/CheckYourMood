@@ -44,14 +44,40 @@ def predict():
     np_arr = np.frombuffer(img_bytes, np.uint8)
     img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    result = DeepFace.analyze(
-        img,
-        actions=['emotion'],
-        enforce_detection=False
-    )
+    try:
+        result = DeepFace.analyze(
+            img,
+            actions=['emotion'],
+            enforce_detection=True,
+            detector_backend='retinaface'
+        )
+    except ValueError:
+        return jsonify({
+            "mood": "Wajah Tidak Terdeteksi",
+            "description": "Hmm, kami tidak bisa menemukan wajah di foto ini. Coba pastikan wajah terlihat jelas ya! 📸",
+            "confidence": 0.0
+        })
+    except Exception as e:
+        return jsonify({
+            "mood": "Error",
+            "description": f"Terjadi kesalahan saat memproses gambar: {str(e)}",
+            "confidence": 0.0
+        }), 500
 
-    emotion_en = result[0]['dominant_emotion']
-    confidence = max(result[0]['emotion'].values())
+    if isinstance(result, list):
+        result_dict = result[0]
+    else:
+        result_dict = result
+
+    emotion_en = result_dict['dominant_emotion']
+    confidence = max(result_dict['emotion'].values())
+
+    if confidence < 40.0:
+        return jsonify({
+            "mood": "Kurang Jelas 🤔",
+            "description": "Ekspresinya agak susah ditebak nih. Coba foto ulang dengan cahaya yang lebih terang atau wajah menghadap lurus ya!",
+            "confidence": round(confidence, 2)
+        })
 
     mood_data = MOOD_MAP.get(
         emotion_en,

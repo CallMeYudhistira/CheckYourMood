@@ -1,6 +1,6 @@
 flask==3.0.0
-tensorflow==2.5.3
-deepface==0.0.75
-numpy==1.19.5
-opencv-python-headless==4.5.5.64
+tensorflow>=2.8.0
+deepface==0.0.99
+numpy>=1.21.6
+opencv-python-headless>=4.5.5.64
 gunicorn==21.2.0

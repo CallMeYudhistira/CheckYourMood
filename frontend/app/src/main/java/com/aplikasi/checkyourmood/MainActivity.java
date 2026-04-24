@@ -45,6 +45,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.File;
+import androidx.core.content.FileProvider;
+import android.media.ExifInterface;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,11 +56,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageView capturedImageView;
     private Bitmap bitmap;
     private TextView tv_description, tv_mood;
-    private Button btn_save;
+    private Button btn_save, btn_reset;
     private LinearLayout savePanel;
-    private final String url = "http://192.168.0.100:5001/predict";
+    private final String url = "http://10.211.20.197:5001/predict";
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private ProgressDialog progressDialog;
+    private String currentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
         savePanel = findViewById(R.id.save_panel);
         btn_save = findViewById(R.id.btn_save);
+        btn_reset = findViewById(R.id.btn_reset);
         btn_save.setVisibility(View.GONE);
+        btn_reset.setVisibility(View.GONE);
         tv_mood = findViewById(R.id.tv_mood);
         tv_description = findViewById(R.id.tv_description);
         capturedImageView = findViewById(R.id.iv_captured_image);
@@ -93,6 +99,16 @@ public class MainActivity extends AppCompatActivity {
             Bitmap resultBitmap = getBitmapFromView(savePanel);
             saveBitmapToGallery(resultBitmap);
         });
+
+        btn_reset.setOnClickListener(v -> {
+            capturedImageView.setImageResource(R.drawable.holder);
+            tv_mood.setText("-_-");
+            tv_description.setText("-____-");
+            btn_save.setVisibility(View.GONE);
+            btn_reset.setVisibility(View.GONE);
+            bitmap = null;
+            currentPhotoPath = null;
+        });
     }
 
     private void dispatchTakePictureIntent() {
@@ -112,8 +128,29 @@ public class MainActivity extends AppCompatActivity {
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        getApplicationContext().getPackageName() + ".fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
         }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault()).format(new java.util.Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalCacheDir();
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
     @Override
@@ -134,10 +171,44 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            // The camera intent typically returns a small thumbnail as a Bitmap in "data"
-            bitmap = (Bitmap) extras.get("data");
-            sendPictureToAPI(bitmap);
+            try {
+                android.graphics.BitmapFactory.Options bmOptions = new android.graphics.BitmapFactory.Options();
+                bmOptions.inJustDecodeBounds = true;
+                android.graphics.BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+                int photoW = bmOptions.outWidth;
+                int photoH = bmOptions.outHeight;
+
+                int targetW = 1024;
+                int targetH = 1024;
+                int scaleFactor = Math.max(1, Math.min(photoW / targetW, photoH / targetH));
+
+                bmOptions.inJustDecodeBounds = false;
+                bmOptions.inSampleSize = scaleFactor;
+
+                bitmap = android.graphics.BitmapFactory.decodeFile(currentPhotoPath, bmOptions);
+
+                ExifInterface ei = new ExifInterface(currentPhotoPath);
+                int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+
+                android.graphics.Matrix matrix = new android.graphics.Matrix();
+                switch (orientation) {
+                    case ExifInterface.ORIENTATION_ROTATE_90:
+                        matrix.postRotate(90);
+                        break;
+                    case ExifInterface.ORIENTATION_ROTATE_180:
+                        matrix.postRotate(180);
+                        break;
+                    case ExifInterface.ORIENTATION_ROTATE_270:
+                        matrix.postRotate(270);
+                        break;
+                }
+                bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+                sendPictureToAPI(bitmap);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Gagal memuat gambar resolusi tinggi", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -206,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
                     tv_description.setText(description);
                     capturedImageView.setImageBitmap(bitmap);
                     btn_save.setVisibility(View.VISIBLE);
+                    btn_reset.setVisibility(View.VISIBLE);
 
                     progressDialog.dismiss();
                 } catch (JSONException e) {
@@ -218,7 +290,12 @@ public class MainActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                String errorMsg = error.getMessage();
+                if (errorMsg == null || errorMsg.isEmpty()) {
+                    errorMsg = "Terjadi kesalahan pada server atau jaringan.";
+                }
+                Toast.makeText(MainActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
             }
         }) {
             @Override
@@ -228,6 +305,11 @@ public class MainActivity extends AppCompatActivity {
                 return params;
             }
         };
+
+        request.setRetryPolicy(new com.android.volley.DefaultRetryPolicy(
+                30000, // 30 detik timeout
+                0, // Jangan retry ulang secara otomatis (mencegah request dobel ke API)
+                com.android.volley.DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
