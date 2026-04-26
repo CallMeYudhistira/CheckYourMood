@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tv_description, tv_mood;
     private Button btn_save, btn_reset;
     private LinearLayout savePanel;
-    private final String url = "http://10.211.20.197:5001/predict";
+    private final String url = "https://check-mood.dhisproject.my.id/predict";
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private ProgressDialog progressDialog;
     private String currentPhotoPath;

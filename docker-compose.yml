@@ -1,6 +1,7 @@
 services:
   emotion-api:
-    build: ./backend
+    # build: ./backend/python
+    build: ./backend/js
     container_name: emotion_api
     ports:
       - "5001:5001"
