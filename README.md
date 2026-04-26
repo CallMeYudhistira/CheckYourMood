@@ -27,6 +27,11 @@ Emosi yang didukung:
 - Jijik 🤢
 - Netral 😑
 
+### Hasil APK
+
+Unduh aplikasi Android (APK) versi API JS di sini:
+👉 **[Download APK CheckYourMood](https://drive.google.com/drive/folders/1PnAPYapg9FCRpaxHZWTa06O6tOsvx16j?usp=drive_link)**
+
 ---
 
 ## 🧠 Tech Stack
